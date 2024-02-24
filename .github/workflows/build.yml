@@ -15,8 +15,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Extract tag name
-        id: tag
+      - name: Get Node version
+        id: version
         uses: actions/github-script@v7
         with:
           result-encoding: string
@@ -24,8 +24,23 @@ jobs:
             const tag = context.payload.release.tag_name;
             return tag.startsWith('v') ? tag.slice(1) : tag;
 
+      - name: Generate tags
+        id: tags
+        uses: actions/github-script@v7
+        env:
+          NODE_VERSION: ${{ steps.version.outputs.result }}
+        with:
+          result-encoding: string
+          script: |
+            const version = process.env.NODE_VERSION;
+            const [majorVersion] = version.split('.');
+            const isLTS = !(majorVersion % 2);
+            const tags = [version, majorVersion, ...(isLTS ? ['lts'] : []), 'latest'];
+            const tagLines = tags.map(tag => `${process.env.TARGET_IMAGE}:${tag}`);
+            return '-t ' + tagLines.join(' -t ');
+
       - name: Build Docker image
-        run: docker build -t ${{ env.TARGET_IMAGE }}:${{ steps.tag.outputs.result }} -t ${{ env.TARGET_IMAGE }}:latest --build-arg NODE_VERSION=${{ steps.tag.outputs.result }} .
+        run: docker build ${{ steps.tags.outputs.result }} --build-arg NODE_VERSION=${{ steps.version.outputs.result }} .
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
