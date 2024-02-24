@@ -9,6 +9,6 @@ RUN powershell -Command \
 
 
 FROM mcr.microsoft.com/windows/nanoserver:ltsc2022
-COPY --from=installer C:\Program Files\nodejs C:\nodejs
+COPY --from=installer ["C:\\\\Program Files\\\\nodejs", "C:\\\\nodejs"]
 
-ENTRYPOINT ["C:\\nodejs\\node.exe"]
+ENTRYPOINT ["C:\\\\nodejs\\\\node.exe"]
