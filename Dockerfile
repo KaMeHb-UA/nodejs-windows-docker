@@ -9,6 +9,11 @@ RUN powershell -Command \
 
 
 FROM mcr.microsoft.com/windows/nanoserver:ltsc2022
+# Copy libs required for some native deps but missing in nanoserver
+COPY --from=installer C:\\Windows\\System32\\shlwapi.dll C:\\Windows\\System32\\shlwapi.dll
+# MS DMO library does not exist in servercore, copy it from the host system, should be already in working dir
+COPY msdmo.dll C:\\Windows\\System32\\msdmo.dll
+# Copy node.js
 COPY --from=installer ["C:\\\\Program Files\\\\nodejs", "C:\\\\nodejs"]
 
 ENTRYPOINT ["C:\\\\nodejs\\\\node.exe"]
